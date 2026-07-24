@@ -3,3 +3,9 @@
 __pycache__/
 *.pyc
 *.pyo
+
+# runtime / downloaded artifacts — the app writes into these, keep out of git
+/models/
+/logs/
+/voice/
+/presets/

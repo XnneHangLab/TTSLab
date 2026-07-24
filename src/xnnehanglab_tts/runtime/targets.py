@@ -8,6 +8,7 @@ FAST_LANGDETECT_LID176_REPO_ID = "xnnehang/fast-langdetect-lid176"
 QWEN_TTS_0_6B_REPO_ID = "Qwen/Qwen3-TTS-12Hz-0.6B-Base"
 QWEN_TTS_1_7B_REPO_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-Base"
 LUMING_GENIE_TTS_REPO_ID = "xnnehang/luming-genie-tts-v2-pro-plus"
+LUMING_GSV_LITE_REPO_ID = "xnnehang/luming-gpt-sovits-v2-pro-plus"
 
 GENIE_BASE_REQUIRED_PATHS = [
     "speaker_encoder.onnx",
@@ -19,11 +20,24 @@ GENIE_BASE_REQUIRED_PATHS = [
 GENIE_BASE_REQUIRED_FILE_PATHS = list(GENIE_BASE_REQUIRED_PATHS)
 GENIE_BASE_REQUIRED_DIR_PATHS: list[str] = []
 
-GSV_LITE_REQUIRED_DIR_PATHS = [
-    "chinese-hubert-base",
-    "chinese-roberta-wwm-ext-large",
-    "g2p",
-    "sv",
+GSV_LITE_REQUIRED_FILE_PATHS = [
+    # chinese-hubert-base
+    "chinese-hubert-base/pytorch_model.bin",
+    "chinese-hubert-base/config.json",
+    # chinese-roberta-wwm-ext-large
+    "chinese-roberta-wwm-ext-large/pytorch_model.bin",
+    "chinese-roberta-wwm-ext-large/config.json",
+    "chinese-roberta-wwm-ext-large/tokenizer.json",
+    # g2p — OpenJTalk binary dicts (Japanese)
+    "g2p/ja/open_jtalk_dic_utf_8-1.11/char.bin",
+    "g2p/ja/open_jtalk_dic_utf_8-1.11/matrix.bin",
+    # g2p — NLTK averaged perceptron tagger (English)
+    "g2p/en/nltk/taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.weights.json",
+    "g2p/en/nltk/taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.tagdict.json",
+    "g2p/en/nltk/taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.classes.json",
+    # sv — speaker verification model
+    "sv/pretrained_eres2netv2w24s4ep4.ckpt",
+    "sv/configuration.json",
 ]
 ROBERTA_FILE_PATTERN = [
     "pytorch_model.bin",
@@ -39,6 +53,9 @@ ROBERTA_FILE_PATTERN = [
 QWEN_TTS_REQUIRED_PATHS = [
     "model.safetensors",
     "speech_tokenizer/model.safetensors",
+    "vocab.json",
+    "merges.txt",
+    "tokenizer_config.json",
 ]
 
 
@@ -87,8 +104,9 @@ def get_download_target(target_id: str, paths: RuntimePaths) -> DownloadTargetSp
             allow_file_pattern=[],
             local_dir=root,
             resource_root=root,
-            required_paths=GSV_LITE_REQUIRED_DIR_PATHS,
-            required_dir_paths=GSV_LITE_REQUIRED_DIR_PATHS,
+            required_paths=GSV_LITE_REQUIRED_FILE_PATHS,
+            required_file_paths=GSV_LITE_REQUIRED_FILE_PATHS,
+            required_dir_paths=[],
             download_steps=[
                 DownloadStep(
                     repo_id="pengzhendong/chinese-hubert-base",
@@ -139,12 +157,25 @@ def get_download_target(target_id: str, paths: RuntimePaths) -> DownloadTargetSp
     if target_id == "luming-genie-tts-v2-pro-plus":
         return DownloadTargetSpec(
             target_id="luming-genie-tts-v2-pro-plus",
-            label="路鸣 Genie-TTS v2 Pro+",
+            label="鹿鸣 Genie-TTS v2 Pro+",
             provider="modelscope",
             repo_id=LUMING_GENIE_TTS_REPO_ID,
             allow_file_pattern=[],
             local_dir=paths.genie_tts_luming_v2_pro_plus_root,
             resource_root=paths.genie_tts_luming_v2_pro_plus_root,
+            required_paths=[],
+            required_file_paths=[],
+        )
+
+    if target_id == "luming-gsv-lite-v2-pro-plus":
+        return DownloadTargetSpec(
+            target_id="luming-gsv-lite-v2-pro-plus",
+            label="鹿鸣 GSV-Lite v2 Pro+",
+            provider="modelscope",
+            repo_id=LUMING_GSV_LITE_REPO_ID,
+            allow_file_pattern=[],
+            local_dir=paths.gsv_tts_lite_luming_v2_pro_plus_root,
+            resource_root=paths.gsv_tts_lite_luming_v2_pro_plus_root,
             required_paths=[],
             required_file_paths=[],
         )

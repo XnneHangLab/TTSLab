@@ -1,11 +1,9 @@
-import os
 from pathlib import Path
 
 import pytest
 
 from xnnehanglab_tts.runtime.config import load_runtime_config
 from xnnehanglab_tts.runtime.download import download_target_bundle
-from xnnehanglab_tts.runtime.download_adapters import _TqdmCapture
 from xnnehanglab_tts.runtime.models import DownloadStep, DownloadTargetSpec, ResourceState
 from xnnehanglab_tts.runtime.targets import get_download_target
 
@@ -91,6 +89,8 @@ def test_download_target_bundle_uses_modelscope_and_emits_stage_events(tmp_path:
             "allow_file_pattern": ["lid.176.bin"],
         },
     ]
+    step0 = target.download_steps[0].repo_id.split("/")[-1]
+    step1 = target.download_steps[1].repo_id.split("/")[-1]
     assert events == [
         {
             "event": "download.started",
@@ -105,19 +105,47 @@ def test_download_target_bundle_uses_modelscope_and_emits_stage_events(tmp_path:
             "event": "download.progress",
             "target": "genie-base",
             "status": "downloading",
-            "message": f"下载 {target.download_steps[0].repo_id.split('/')[-1]}（1/2）",
+            "message": f"下载 {step0}（1/2）",
             "progressCurrent": 1,
             "progressTotal": 4,
             "progressUnit": "stage",
         },
         {
+            "event": "download.file_progress",
+            "target": "genie-base",
+            "status": "downloading",
+            "desc": step0,
+            "percent": 0,
+        },
+        {
+            "event": "download.file_progress",
+            "target": "genie-base",
+            "status": "downloading",
+            "desc": step0,
+            "percent": 100,
+        },
+        {
             "event": "download.progress",
             "target": "genie-base",
             "status": "downloading",
-            "message": f"下载 {target.download_steps[1].repo_id.split('/')[-1]}（2/2）",
+            "message": f"下载 {step1}（2/2）",
             "progressCurrent": 2,
             "progressTotal": 4,
             "progressUnit": "stage",
+        },
+        {
+            "event": "download.file_progress",
+            "target": "genie-base",
+            "status": "downloading",
+            "desc": step1,
+            "percent": 0,
+        },
+        {
+            "event": "download.file_progress",
+            "target": "genie-base",
+            "status": "downloading",
+            "desc": step1,
+            "percent": 100,
         },
         {
             "event": "download.verifying",
@@ -183,55 +211,15 @@ def test_download_target_bundle_raises_with_missing_paths_when_verify_not_ready(
     assert [event["event"] for event in events] == [
         "download.started",
         "download.progress",
+        "download.file_progress",
+        "download.file_progress",
         "download.progress",
+        "download.file_progress",
+        "download.file_progress",
         "download.verifying",
     ]
 
 
-def test_tqdm_capture_emits_file_progress_events_for_real_modelscope_bars():
-    from modelscope.hub.callback import TqdmCallback
-
-    events = []
-
-    with _TqdmCapture(events.append, "genie-base"):
-        callback = TqdmCallback(
-            "GenieData/chinese-hubert-base/chinese-hubert-base.onnx",
-            180 * 1024 * 1024,
-        )
-        callback.update(75 * 1024 * 1024)
-        callback.end()
-
-    assert events[-1] == {
-        "event": "download.file_progress",
-        "target": "genie-base",
-        "desc": "GenieData/chinese-hubert-base/chinese-hubert-base.onnx",
-        "percent": 42,
-        "downloaded": "75.0M",
-        "total": "180M",
-    }
-
-
-def test_tqdm_capture_drops_modelscope_info_logs():
-    events = []
-    capture = _TqdmCapture(events.append, "genie-base")
-    read_fd, write_fd = os.pipe()
-    capture._saved_fd2 = write_fd
-
-    try:
-        capture._handle(
-            "2026-04-06 08:00:00,000 - modelscope - INFO - Got 4 files, start to download ..."
-        )
-        os.close(write_fd)
-        capture._saved_fd2 = None
-        assert os.read(read_fd, 4096) == b""
-    finally:
-        if capture._saved_fd2 is not None:
-            os.close(capture._saved_fd2)
-        os.close(read_fd)
-        os.close(capture._r)
-        os.close(capture._w)
-
-    assert events == []
 
 
 def test_download_target_bundle_selects_provider_and_verifier_from_target(tmp_path: Path):
@@ -355,7 +343,11 @@ def test_download_target_bundle_uses_step_provider_override_and_target_fallback(
     assert [event["event"] for event in events] == [
         "download.started",
         "download.progress",
+        "download.file_progress",
+        "download.file_progress",
         "download.progress",
+        "download.file_progress",
+        "download.file_progress",
         "download.verifying",
         "download.completed",
     ]
