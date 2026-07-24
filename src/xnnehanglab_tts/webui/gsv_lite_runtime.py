@@ -640,16 +640,17 @@ def synthesize_once(
 
     loop = asyncio.new_event_loop()
     try:
-        wav_bytes = loop.run_until_complete(
-            _synthesize_async(
-                text=text,
-                ref_audio=ref_audio,
-                ref_text=ref_text,
-                speaker_audio=speaker_audio,
-                top_k=top_k, top_p=top_p, temperature=temperature,
-                repetition_penalty=repetition_penalty, noise_scale=noise_scale, speed=speed,
+        with _model_lock:
+            wav_bytes = loop.run_until_complete(
+                _synthesize_async(
+                    text=text,
+                    ref_audio=ref_audio,
+                    ref_text=ref_text,
+                    speaker_audio=speaker_audio,
+                    top_k=top_k, top_p=top_p, temperature=temperature,
+                    repetition_penalty=repetition_penalty, noise_scale=noise_scale, speed=speed,
+                )
             )
-        )
     finally:
         loop.close()
 
@@ -688,17 +689,21 @@ def stream_synthesize(
 
     spk_audio = speaker_audio or ref_audio
 
-    for clip in _gsv_lite_engine.infer_stream(
-        spk_audio_path=str(spk_audio),
-        prompt_audio_path=str(ref_audio),
-        prompt_audio_text=ref_text.strip(),
-        text=text,
-        top_k=top_k,
-        top_p=top_p,
-        temperature=temperature,
-        repetition_penalty=repetition_penalty,
-        noise_scale=noise_scale,
-        speed=speed,
-        debug=False,
-    ):
-        yield clip.samplerate, clip.audio_data
+    with _model_lock:
+        if _gsv_lite_engine is None:
+            raise RuntimeError("模型尚未加载，请先选择角色并点击「加载模型」")
+        stream = _gsv_lite_engine.infer_stream(
+            spk_audio_path=str(spk_audio),
+            prompt_audio_path=str(ref_audio),
+            prompt_audio_text=ref_text.strip(),
+            text=text,
+            top_k=top_k,
+            top_p=top_p,
+            temperature=temperature,
+            repetition_penalty=repetition_penalty,
+            noise_scale=noise_scale,
+            speed=speed,
+            debug=False,
+        )
+        for clip in stream:
+            yield clip.samplerate, clip.audio_data

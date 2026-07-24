@@ -58,6 +58,10 @@ def test_ensure_managed_dirs_creates_download_directories(tmp_path: Path):
 
     assert paths.genie_base_root.is_dir()
     assert paths.genie_characters_root.is_dir()
+    assert paths.gsv_lite_root.is_dir()
+    assert paths.gsv_tts_lite_luming_v2_pro_plus_root.is_dir()
+    assert paths.qwen_tts_0_6b_root.is_dir()
+    assert paths.qwen_tts_1_7b_root.is_dir()
     assert paths.download_logs_root.is_dir()
 
 

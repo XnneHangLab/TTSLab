@@ -23,6 +23,7 @@ def _build_paths(tmp_path: Path) -> RuntimePaths:
         genie_tts_root=models_root / "genie-tts",
         genie_tts_luming_v2_pro_plus_root=models_root / "genie-tts" / "luming-v2-pro-plus",
         gsv_lite_root=models_root / "GSVLiteData",
+        gsv_tts_lite_luming_v2_pro_plus_root=models_root / "gsv-tts-lite" / "luming-v2-pro-plus",
         qwen_tts_0_6b_root=models_root / "Qwen3-TTS-0.6B",
         qwen_tts_1_7b_root=models_root / "Qwen3-TTS-1.7B",
         cache_root=cache_root,

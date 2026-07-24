@@ -75,7 +75,13 @@ def build_parser() -> argparse.ArgumentParser:
     download_parser = subparsers.add_parser("download")
     download_parser.add_argument("target")
     webui_parser = subparsers.add_parser("webui")
-    webui_parser.add_argument("--backend", default="genie-tts", choices=["genie-tts", "qwen-tts"])
+    # Kept for launcher compatibility; multi-tab webui always exposes all backends.
+    webui_parser.add_argument(
+        "--backend",
+        default="genie-tts",
+        choices=["genie-tts", "gsv-tts-lite", "qwen-tts", "faster-qwen-tts"],
+        help="Ignored: webui launches all available tabs.",
+    )
     webui_parser.add_argument("--host", default="0.0.0.0")
     webui_parser.add_argument("--port", type=int, default=7860)
     webui_parser.add_argument("--share", action="store_true")
