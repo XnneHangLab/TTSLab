@@ -4,7 +4,8 @@
 	branch = master
 [submodule "launcher"]
 	path = launcher
-	url = https://github.com/XnneHangLab/HuixinLauncherTemplate.git
+	url = https://github.com/XnneHangLab/TTSLauncher.git
+	branch = main
 [submodule "packages/GSV-TTS-Lite"]
 	path = packages/GSV-TTS-Lite
 	url = https://github.com/XnneHangLab-Mirror/GSV-TTS-Lite.git
